@@ -11,7 +11,7 @@ for(let arg of process.argv){
 }
 
 const config = {
-  signallingURL: "ws://localhost:8889",
+  signallingURL: "ws://localhost:8889?room_id=aa",
 
   mediasoup: {
     worker: {

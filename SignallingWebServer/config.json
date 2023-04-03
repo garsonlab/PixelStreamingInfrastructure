@@ -1,5 +1,5 @@
 {
-	"UseFrontend": false,
+	"UseFrontend": true,
 	"UseMatchmaker": false,
 	"UseHTTPS": false,
 	"UseAuthentication": false,
