@@ -69,8 +69,8 @@ if(username && password){
 	}
 
 	console.log(`Writing updated users to '${usersFile}'`);
-	var newContent = JSON.stringify(existingAccounts);
-	fs.writeFileSync(usersFile, newContent);
+	var newContent = JSON.stringify(existingAccounts, null, 4);
+	fs.writeFileSync(usersFile, newContent, );
 } else {
 	console.log(`Please pass in both username (${username}) and password (${password}) please`);
 }

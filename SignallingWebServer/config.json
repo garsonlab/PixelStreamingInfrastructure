@@ -1,5 +1,5 @@
 {
-	"UseFrontend": true,
+	"UseFrontend": false,
 	"UseMatchmaker": false,
 	"UseHTTPS": false,
 	"UseAuthentication": false,
@@ -15,5 +15,9 @@
 	"HttpsPort": 443,
 	"StreamerPort": 8888,
 	"SFUPort": 8889,
-	"MaxPlayerCount": -1
+	"MaxPlayerCount": -1,
+	"Rooms": ["PVW", "PGM",
+			"ScreenPlayer1", "ScreenPlayer2",
+			"ScreenPlayer3", "ScreenPlayer4", "ScreenPlayer5",
+			"Diana", "Bella", "Eileen", "Ava"]
 }

@@ -187,13 +187,13 @@ if (config.UseHTTPS) {
 	});
 }
 
-sendGameSessionData();
+// sendGameSessionData();
 
 //Setup the login page if we are using authentication
 if(config.UseAuthentication){
 	if(config.EnableWebserver) {
 		app.get('/login', function(req, res){
-			res.sendFile(__dirname + '/login.htm');
+			res.sendFile(__dirname + '/Public/login.html');
 		});
 	}
 
@@ -239,7 +239,13 @@ let url = require('url');
 let webrtcRoom = require('./scripts/webrtcRoom');
 let rooms = new Map(); // all rooms collection
 
-rooms.set("aa", new webrtcRoom('aa'))
+// todo: Can be dynamic add by dashboard
+if (config.Rooms) {
+	config.Rooms.forEach((room)=>{
+		console.error(`add room ${room}`)
+		rooms.set(room, new webrtcRoom(room, config.LogVerbose));
+	})
+}
 
 
 if(config.EnableWebserver) {
@@ -274,7 +280,23 @@ if(config.EnableWebserver) {
 	});
 
 	app.get('/dashboard', isAuthenticated('/login'), function (req, res) {
-		res.sendStatus(200);
+
+		let roomsObj = []
+		rooms.forEach((v, k) => {
+			let r = {};
+			r.name = k;
+			r.streamer = v.streamerIsConnected() != null;
+			r.sfu = v.sfuIsConnected() != null;
+			r.players = v.playerCount();
+
+			roomsObj.push(r);
+
+			console.error("###   " + typeof v.sfuIsConnected() )
+		});
+
+
+
+		res.send(JSON.stringify(roomsObj, null, 4));
 		return;
 	})
 }
@@ -299,6 +321,7 @@ console.logColor(logging.Green, `WebSocket listening for Streamer connections on
 let streamerServer = new WebSocket.Server({ port: streamerPort, backlog: 1 });
 streamerServer.on('connection', function (ws, req) {
 
+	console.error("streamer  " + req.url)
 	const parsedStreamerUrl = url.parse(req.url);
 	const streamerUrlParams = new URLSearchParams(parsedStreamerUrl.search);
 
@@ -319,8 +342,10 @@ streamerServer.on('connection', function (ws, req) {
 	
 	let room = rooms.get(room_id);
 
+	console.error("stream  " + room_id + "   " + room + "   " + room.getName()) 
+
 	// Check if we have an already existing connection to a streamer, if so, deny a new streamer connecting.
-	if (room.streamerIsNull()) {
+	if (!room.streamerIsNull()) {
 		/* We send a 1008 because that a "policy violation", which similar enough to what is happening here. */
 		ws.close(1008, 'Cirrus supports only 1 streamer being connected, already one connected, so dropping this new connection.');
 		console.logColor(logging.Yellow, `Dropping new streamer connection, we already have a connected streamer`);
@@ -400,12 +425,12 @@ playerServer.on('connection', function (ws, req) {
 	}
 
 	const preferSFU = playerUrlParams.has('preferSFU') && playerUrlParams.get('preferSFU') !== 'false';
-	
+	// const preferSFU = true
 	if(preferSFU && !room.sfuIsConnected()) {
 		ws.send(JSON.stringify({ type: "warning", warning: "Even though ?preferSFU was specified, there is currently no SFU connected." }));
 	}
 
-	if(room.playerCount() + 1 > maxPlayerCount && maxPlayerCount !== -1)
+	if(room.playerCount + 1 > maxPlayerCount && maxPlayerCount !== -1)
 	{
 		console.logColor(logging.Red, `room-${room_id} new connection would exceed number of allowed concurrent connections. Max: ${maxPlayerCount}, Current ${playerCount}`);
 		ws.close(1013, `too many connections. max: ${maxPlayerCount}, current: ${playerCount}`);
